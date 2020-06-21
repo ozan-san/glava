@@ -372,7 +372,7 @@ unsigned int xwin_copyglbg(struct glava_renderer* rd, unsigned int tex) {
         if ((shminfo.shmid = shmget(IPC_PRIVATE, image->bytes_per_line * image->height,
                                     IPC_CREAT | 0777)) == -1) {
             fprintf(stderr, "shmget() failed: %s\n", strerror(errno));
-            glava_abort();
+            exit(EXIT_FAILURE);
         }
         shminfo.shmaddr = image->data = shmat(shminfo.shmid, 0, 0);
         shminfo.readOnly = false;

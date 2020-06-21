@@ -74,10 +74,6 @@
 
 static volatile bool reload = false;
 
-__attribute__((noreturn, visibility("default"))) void glava_return_builtin(void) { exit(EXIT_SUCCESS); }
-__attribute__((noreturn, visibility("default"))) void glava_abort_builtin (void) { exit(EXIT_FAILURE); }
-__attribute__((noreturn, visibility("default"))) void (*glava_return)     (void) = glava_return_builtin;
-__attribute__((noreturn, visibility("default"))) void (*glava_abort)      (void) = glava_abort_builtin;
 
 /* Copy installed shaders/configuration from the installed location
    (usually /etc/xdg). Modules (folders) will be linked instead of
@@ -90,13 +86,13 @@ static void copy_cfg(const char* path, const char* dest, bool verbose) {
     DIR* dir = opendir(path);
     if (!dir) {
         fprintf(stderr, "'%s' does not exist\n", path);
-        glava_abort();
+    	exit(EXIT_FAILURE);
     }
 
     umask(~(S_IRWXU | S_IRGRP | S_IROTH | S_IXGRP | S_IXOTH));
     if (mkdir(dest, ACCESSPERMS) && errno != EEXIST) {
         fprintf(stderr, "could not create directory '%s': %s\n", dest, strerror(errno));
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
     
     struct dirent* d;
@@ -319,11 +315,11 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
             case 'm': force           = optarg; break;
             case 'b': backend         = optarg; break;
             case 'a': audio_impl_name = optarg; break;
-            case '?': glava_abort(); break;
+            case '?': exit(EXIT_FAILURE); break;
             case 'V':
                 puts(GLAVA_VERSION_STRING);
-                glava_return();
-                break;
+                exit(EXIT_SUCCESS);
+		break;
             default:
             case 'h': {
                 char buf[2048];
@@ -332,7 +328,7 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
                     bsz += snprintf(buf + bsz, sizeof(buf) - bsz, "\t\"%s\"%s\n", audio_impls[t]->name,
                                     !strcmp(audio_impls[t]->name, audio_impl_name) ? " (default)" : "");
                 printf(help_str, argc > 0 ? argv[0] : "glava", buf);
-                glava_return();
+                exit(EXIT_SUCCESS);
                 break;
             }
             case 'p': {
@@ -358,7 +354,7 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
                 if (*parsed_name == '\0') {
                     fprintf(stderr, "Error: invalid pipe binding name: \"%s\"\n"
                             "Zero length names are not permitted.\n", parsed_name);
-                    glava_abort();
+                    exit(EXIT_FAILURE);
                 }
                 for (char* c = parsed_name; *c != '\0'; ++c) {
                     switch (*c) {
@@ -366,7 +362,7 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
                             if (c == parsed_name) {
                                 fprintf(stderr, "Error: invalid pipe binding name: \"%s\" ('%c')\n"
                                         "Valid names may not start with a number.\n", parsed_name, *c);
-                                glava_abort();
+                                exit(EXIT_FAILURE);
                             }
                         case 'a' ... 'z':
                         case 'A' ... 'Z':
@@ -375,13 +371,13 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
                             fprintf(stderr, "Error: invalid pipe binding name: \"%s\" ('%c')\n"
                                     "Valid names may only contain [a..z], [A..Z], [0..9] "
                                     "and '_' characters.\n", parsed_name, *c);
-                            glava_abort();
+                            exit(EXIT_FAILURE);
                     }
                 }
                 for (size_t t = 0; t < binds_sz; ++t) {
                     if (!strcmp(binds[t].name, parsed_name)) {
                         fprintf(stderr, "Error: attempted to re-bind pipe argument: \"%s\"\n", parsed_name);
-                        glava_abort();
+                        exit(EXIT_FAILURE);
                     }
                 }
                 int type = -1;
@@ -399,7 +395,7 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
                 }
                 if (type == -1) {
                     fprintf(stderr, "Error: Unsupported `--pipe` GLSL type: \"%s\"\n", parsed_type);
-                    glava_abort();
+                    exit(EXIT_FAILURE);
                 }
                 struct rd_bind bd = {
                     .name  = parsed_name,
@@ -426,13 +422,13 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
                 }
                 if (stdin_type == -1) {
                     fprintf(stderr, "Error: Unsupported `--stdin` GLSL type: \"%s\"\n", optarg);
-                    glava_abort();
+                    exit(EXIT_FAILURE);
                 }
                 break;
             }
             conflict_error:
                 fprintf(stderr, "Error: cannot use `--pipe` and `--stdin` together\n");
-                glava_abort();
+                exit(EXIT_FAILURE);
                 #ifdef GLAVA_DEBUG
             case 'T': {
                 entry = "test_rc.glsl";
@@ -444,7 +440,7 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
 
     if (copy_mode) {
         copy_cfg(install_path, user_path, verbose);
-        glava_return();
+    	exit(EXIT_SUCCESS);
     }
 
     /* Handle `--force` argument as a request override */
@@ -475,7 +471,7 @@ void glava_entry(int argc, char** argv, glava_handle* ret) {
 
     if (!impl) {
         fprintf(stderr, "The specified audio backend (\"%s\") is not available.\n", audio_impl_name);
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
 
 instantiate: {}
@@ -556,7 +552,7 @@ instantiate: {}
         if (rd_test_evaluate(rd)) {
             fprintf(stderr, "Test results did not match expected output\n");
             fflush(stderr);
-            glava_abort();
+            exit(EXIT_FAILURE);
         }
     }
     #endif
@@ -575,3 +571,4 @@ instantiate: {}
     if (__atomic_exchange_n(&reload, false, __ATOMIC_SEQ_CST))
         goto instantiate;
 }
+

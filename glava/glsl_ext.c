@@ -63,7 +63,7 @@ static void se_append(struct sbuf* sbuf, size_t elen, const char* fmt, ...) {
     va_start(args, fmt);
     int written;
     if ((written = vsnprintf(sbuf->buf + sbuf->at, space, fmt, args)) < 0)
-        glava_abort();
+        exit(EXIT_FAILURE);
     sbuf->at += written;
     va_end(args);
 }
@@ -71,13 +71,13 @@ static void se_append(struct sbuf* sbuf, size_t elen, const char* fmt, ...) {
 #define parse_error(line, f, fmt, ...)                                  \
     do {                                                                \
         fprintf(stderr, "[%s:%d] " fmt "\n", f, (int) line, __VA_ARGS__); \
-        glava_abort();                                                  \
+        exit(EXIT_FAILURE);                                                  \
     } while (0)
 
 #define parse_error_s(line, f, s)                           \
     do {                                                    \
         fprintf(stderr, "[%s:%d] " s "\n", f, (int) line);  \
-        glava_abort();                                      \
+        exit(EXIT_FAILURE);                                      \
     } while (0)
 
 struct schar {
@@ -152,7 +152,7 @@ static struct schar directive(struct glsl_ext* ext, char** args,
             struct schar ret = { .buf = malloc(bsz) };
             int r            = snprintf(ret.buf, bsz, "#ifdef %1$s\n#undef %1$s\n#endif\n", args[0]);
             if (r < 0)
-                glava_abort();
+                exit(EXIT_FAILURE);
             ret.sz = r;
             free_after(ext, ret.buf);
             return ret;

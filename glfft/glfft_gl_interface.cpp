@@ -23,7 +23,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <vector>
-
+#include <cstdio>
 using namespace GLFFT;
 using namespace std;
 

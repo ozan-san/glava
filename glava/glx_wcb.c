@@ -202,7 +202,7 @@ static void* resolve_f(const char* symbol, void* gl) {
     if (gl) s = dlsym(gl,  symbol);
     if (!s) {
         fprintf(stderr, "Failed to resolve GLX symbol: `%s`\n", symbol);
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
     return s;
 }
@@ -237,7 +237,7 @@ static void init(void) {
 
     if (!hgl) {
         fprintf(stderr, "Failed to load GLX functions (libGL and libGLX do not exist!)\n");
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
 
     #define resolve(name) do { name = (typeof(name)) resolve_f(#name, hgl); } while (0)
@@ -390,7 +390,7 @@ static void* create_and_bind(const char* name, const char* class,
                 "\nGLX extension version mismatch on the current display (1.4+ required, %d.%d available)\n"
                 "This is usually due to an outdated X server or graphics drivers.\n\n",
                 glx_minor, glx_major);
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
 
     static int gl_attrs[] = {
@@ -421,7 +421,7 @@ static void* create_and_bind(const char* name, const char* class,
                 "glXChooseFBConfig(): failed with attrs "
                 "(GLX_CONTEXT_MAJOR_VERSION_ARB, GLX_CONTEXT_MINOR_VERSION_ARB)\n\n",
                 version_major, version_minor);
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
     
     for (int t = 0; t < fb_sz; ++t) {

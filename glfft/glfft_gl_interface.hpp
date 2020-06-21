@@ -22,7 +22,8 @@
 #include "glfft_interface.hpp"
 
 #include "glfft_gl_api_headers.hpp"
-
+#include <cstdio>
+#include <cerrno>
 /* GLava additions (POSIX) */
 extern "C" {
     #include <time.h>

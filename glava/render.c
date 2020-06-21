@@ -338,11 +338,11 @@ static GLuint shaderload(const char*             rpath,
     switch (glGetError()) {
         case GL_INVALID_VALUE:
             fprintf(stderr, "invalid value while loading shader source\n");
-            glava_abort();
+            exit(EXIT_FAILURE);
             return 0;
         case GL_INVALID_OPERATION:
             fprintf(stderr, "invalid operation while loading shader source\n");
-            glava_abort();
+            exit(EXIT_FAILURE);
             return 0;
         default: {}
     }
@@ -986,7 +986,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                 fprintf(stderr, "\t\"%s\"\n", wcbs[t]->name);
             }
         }
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
     
     if (verbose) printf("Using backend: '%s'\n", backend);
@@ -1000,7 +1000,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
 
     if (!gl->wcb) {
         fprintf(stderr, "Invalid window creation backend selected: '%s'\n", backend);
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
     
     #ifdef GLAD_DEBUG
@@ -1046,7 +1046,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
 
                   if (!gl->copy_desktop && !native_opacity && strcmp("none", (char*) args[0])) {
                       fprintf(stderr, "Invalid opacity option: '%s'\n", (char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
               })
         },
@@ -1069,7 +1069,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                   };
                   if (!ext_parse_color((char*) args[0], 2, results)) {
                       fprintf(stderr, "Invalid value for `setbg` request: '%s'\n", (char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
               })
         },
@@ -1084,7 +1084,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                   };
                   if (!ext_parse_color((char*) args[0], 2, results)) {
                       fprintf(stderr, "Invalid value for `setbg` request: '%s'\n", (char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
               })
         },
@@ -1116,7 +1116,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                       current->nativeonly = *(bool*) args[0];
                   else {
                       fprintf(stderr, "`nativeonly` request needs module context\n");
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
               })
         },
@@ -1229,7 +1229,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                       fprintf(stderr, "Cannot add transformation to uniform '%s':"
                               " uniform does not exist! (%d present in this unit)\n",
                               (const char*) args[0], (int) current->binds_sz);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
                   struct gl_transform* tran = NULL;
                   for (t = 0; t < sizeof(transform_functions) / sizeof(struct gl_transform); ++t) {
@@ -1242,12 +1242,12 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                       fprintf(stderr, "Cannot add transformation '%s' to uniform '%s':"
                               " transform function does not exist!\n",
                               (const char*) args[1], (const char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
                   if (tran->type != bind->type) {
                       fprintf(stderr, "Cannot apply '%s' to uniform '%s': mismatching types\n",
                               (const char*) args[1], (const char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
                   ++bind->t_sz;
                   bind->transformations =
@@ -1289,13 +1289,13 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                   if (!current) {
                       fprintf(stderr, "Cannot bind uniform '%s' outside of a context"
                               " (load a module first!)\n", (const char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
                   struct gl_bind_src* src = lookup_bind_src((const char*) args[0]);
                   if (!src) {
                       fprintf(stderr, "Cannot bind uniform '%s': bind type does not exist!\n",
                               (const char*) args[0]);
-                      glava_abort();
+                      exit(EXIT_FAILURE);
                   }
                   ++current->binds_sz;
                   current->binds = realloc(current->binds, current->binds_sz * sizeof(struct gl_bind));
@@ -1346,7 +1346,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                 errno != ENOTDIR &&
                 errno != ELOOP     ) {
                 fprintf(stderr, "Failed to load entry '%s': %s\n", se_buf, strerror(errno));
-                glava_abort();
+                exit(EXIT_FAILURE);
             } else continue;
         }
         fstat(fd, &st);
@@ -1376,7 +1376,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                         errno != ELOOP) {
                         fprintf(stderr, "Failed to load desktop environment specific presets "
                                 "at '%s': %s\n", se_buf, strerror(errno));
-                        glava_abort();
+                        exit(EXIT_FAILURE);
                     } else {
                         if (verbose)
                             printf("No presets for current desktop environment (\"%s\"), "
@@ -1386,7 +1386,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                         if (fd == -1) {
                             fprintf(stderr, "Failed to load default presets at '%s': %s\n",
                                     se_buf, strerror(errno));
-                            glava_abort();
+                            exit(EXIT_FAILURE);
                         }
                     }
                 }
@@ -1439,7 +1439,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                 "No module was selected, edit '%s' to load "
                 "a module with `#request mod [name]`\n",
                 entry);
-        glava_abort();
+        exit(EXIT_FAILURE);
     }
     
     gl->w = gl->wcb->create_and_bind(
@@ -1549,7 +1549,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                             if (skip && verbose) printf("disabled: '%s'\n", d->d_name);
                             /* check for compilation failure */
                             if (!id && !skip)
-                                glava_abort();
+                                exit(EXIT_FAILURE);
 
                             s->shader = id;
 
@@ -1579,7 +1579,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
                                         s->pipe_uniforms[u] = glGetUniformLocation(id, buf);
                                     } else {
                                         fprintf(stderr, "failed to format binding: \"%s\"\n", bd->name);
-                                        glava_abort();
+                                        exit(EXIT_FAILURE);
                                     }
                                     ++u;
                                 }
@@ -1634,7 +1634,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
         loading_smooth_pass = true;
         if (!(gl->sm_prog = shaderbuild(gl, util, data, dd, handlers, shader_version,
                                         NULL, "smooth_pass.frag")))
-            glava_abort();
+            exit(EXIT_FAILURE);
         gl->sm_utex = glGetUniformLocation(gl->sm_prog, "tex");
         gl->sm_usz  = glGetUniformLocation(gl->sm_prog, "sz");
         gl->sm_uw   = glGetUniformLocation(gl->sm_prog, "w");
@@ -1645,14 +1645,14 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
             /* Compile gravity pass shader */
             if (!(gl->gr_prog = shaderbuild(gl, util, data, dd, handlers, shader_version,
                                             NULL, "gravity_pass.frag")))
-                glava_abort();
+                exit(EXIT_FAILURE);
             gl->gr_utex  = glGetUniformLocation(gl->gr_prog, "tex");
             gl->gr_udiff = glGetUniformLocation(gl->gr_prog, "diff");
         
             /* Compile averaging shader */
             if (!(gl->av_prog = shaderbuild(gl, util, data, dd, handlers, shader_version,
                                             NULL, "average_pass.frag")))
-                glava_abort();
+                exit(EXIT_FAILURE);
             char buf[6];
             gl->av_utex = malloc(sizeof(GLuint) * gl->avg_frames);
             for (size_t t = 0; t < gl->avg_frames; ++t) {
@@ -1663,7 +1663,7 @@ struct glava_renderer* rd_new(const char**    paths,        const char* entry,
             /* Compile pass shader (straight 1D texture map) */
             if (!(gl->p_prog = shaderbuild(gl, util, data, dd, handlers, shader_version,
                                            NULL, "pass.frag")))
-                glava_abort();
+                exit(EXIT_FAILURE);
             gl->p_utex  = glGetUniformLocation(gl->p_prog, "tex");
         }
     }
@@ -1726,7 +1726,7 @@ static void bind_1d_fbo(struct sm_fb* sm, size_t sz) {
             case GL_FRAMEBUFFER_COMPLETE: break;
             default:
                 fprintf(stderr, "error in frambuffer state\n");
-                glava_abort();
+                exit(EXIT_FAILURE);
         }
     } else {
         /* Just bind our data if it was already allocated and setup */
